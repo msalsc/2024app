@@ -1,0 +1,216 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                       String              @id @default(cuid())
+  email                    String?             @unique
+  password                 Password?
+  created_at               DateTime            @default(now())
+  updated_at               DateTime            @updatedAt
+  gender                   String?
+  birthday                 DateTime?
+  created_forum_messages   ForumMessage[]
+  logged_events            LogEvent[]
+  events                   Event[]
+  updates                  Update[]
+  is_admin                 Boolean?            @default(false)
+  tokens                   Token[]
+  name                     String?
+  notification_tokens      NotificationToken[]
+  created_forum_categories ForumCategory[]
+  user_events              UserEvent[]
+  deleted_at               DateTime?
+
+  @@map("user")
+}
+
+model LogEvent {
+  id         String   @id @default(cuid())
+  name       String?
+  meta       Json?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user_id    String?
+  referrer   String?
+  user       User?    @relation(fields: [user_id], references: [id])
+  time_spent Int?
+
+  @@map("log_event")
+}
+
+model Event {
+  id            String               @id @default(cuid())
+  name          String?
+  created_at    DateTime             @default(now())
+  updated_at    DateTime             @updatedAt
+  deleted_at    DateTime?
+  user_id       String?
+  favorited_by  UserEvent[]
+  user          User?                @relation(fields: [user_id], references: [id])
+  description   String?
+  start_date    DateTime?
+  end_date      DateTime?
+  location_id   String?
+  location      Location?            @relation(fields: [location_id], references: [id])
+  type_of_event AcceptedAtEventType? @default(all)
+  updates       Update[]
+
+  @@map("events")
+}
+
+enum AcceptedAtEventType {
+  brothers
+  competitors
+  sisters
+  all
+}
+
+model UserEvent {
+  id         String   @id @default(cuid())
+  user_id    String?
+  event_id   String?
+  user       User?    @relation(fields: [user_id], references: [id])
+  event      Event?   @relation(fields: [event_id], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("user_events")
+}
+
+enum ForumCategoryType {
+  male_only
+  female_only
+  all
+}
+
+model ForumCategory {
+  id         String            @id @default(cuid())
+  name       String?
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+  deleted_at DateTime?
+  is_one_way Boolean?          @default(false)
+  user_id    String?
+  user       User?             @relation(fields: [user_id], references: [id])
+  type       ForumCategoryType @default(all)
+
+  forum_messages ForumMessage[]
+
+  @@map("forum_categories")
+}
+
+model ForumMessage {
+  id                String         @id @default(cuid())
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  deleted_at        DateTime?
+  user_id           String?
+  user              User?          @relation(fields: [user_id], references: [id])
+  forum_category_id String?
+  forum_category    ForumCategory? @relation(fields: [forum_category_id], references: [id])
+  message           String?
+
+  @@map("forum_messages")
+}
+
+model Update {
+  id          String    @id @default(cuid())
+  name        String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  user_id     String?
+  user        User?     @relation(fields: [user_id], references: [id])
+  description String?
+  event_id    String?
+  event       Event?    @relation(fields: [event_id], references: [id])
+
+  @@map("updates")
+}
+
+model Token {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  user_id    String?
+  user       User?     @relation(fields: [user_id], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  for_email  String?
+
+  @@map("tokens")
+}
+
+model NotificationToken {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  user_id    String?
+  user       User?     @relation(fields: [user_id], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@map("notification_tokens")
+}
+
+model Location {
+  id           String    @id @default(cuid()) @db.VarChar(255)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime? @db.Timestamptz(6)
+  nice_name    String?   @db.VarChar(255)
+  line1        String?   @db.VarChar(255)
+  line2        String?   @db.VarChar(255)
+  lat          String?   @db.VarChar(255)
+  lng          String?   @db.VarChar(255)
+  label        String?   @db.VarChar(255)
+  city         String?   @db.VarChar(255)
+  state        String?   @db.VarChar(255)
+  phone_number String?   @db.VarChar(255)
+  postal_code  String?   @db.VarChar(255)
+  country      String?   @db.VarChar(255)
+  county       String?   @db.VarChar(255)
+  events       Event[]
+
+  @@map("locations")
+}
+
+model VariableContent {
+  key        String    @unique
+  value      String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@map("variable_content")
+}
+
+model Sponsors {
+  id          String    @id @default(cuid())
+  name        String?
+  description String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  logo        String?
+  link        String?
+  order       Int?
+
+  @@map("sponsors")
+}
+
+model Password {
+  hash       String
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id    String    @unique
+  deleted_at DateTime?
+  created_at DateTime  @default(now())
+
+  @@map("passwords")
+}

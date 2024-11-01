@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MSA Showdown</string>
+    <string moduleConfig="true" name="CodePushDeploymentKey">pOAfNCx4GH4SnnUU2HqBDiLzZ05Q5YKtE1Ect</string>
+</resources>

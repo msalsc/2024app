@@ -1,0 +1,88 @@
+version: "3"
+
+services:
+  express-backend:
+    container_name: fullpower-stack-backend
+    build:
+      context: .
+      dockerfile: ./apps/backend/express/Dockerfile
+    restart: always
+    ports:
+      - 4000:4000
+    networks:
+      - app_network
+  vite:
+    container_name: fullpower-stack-vite
+    build:
+      context: .
+      dockerfile: ./apps/vite/Dockerfile
+    restart: always
+    ports:
+      - 5173:5173
+    networks:
+      - app_network
+    depends_on:
+      - express-backend
+
+  nextjs:
+    container_name: fullpower-stack-nextjs
+    build:
+      context: .
+      dockerfile: ./apps/nextjs/Dockerfile
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - app_network
+    depends_on:
+      - express-backend
+  remix:
+    container_name: fullpower-stack-remix
+    build:
+      context: .
+      dockerfile: ./apps/remix/Dockerfile
+    restart: always
+    ports:
+      - 3003:3003
+    networks:
+      - app_network
+    depends_on:
+      - express-backend
+  astro:
+    container_name: fullpower-stack-astro
+    build:
+      context: .
+      dockerfile: ./apps/astro/Dockerfile
+    restart: always
+    ports:
+      - 3002:3002
+    networks:
+      - app_network
+    depends_on:
+      - express-backend
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+# Define a network, which allows containers to communicate
+# with each other, by using their container name as a hostname
+networks:
+  app_network:
+    # external: truenetworks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+  pgadmin:

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": [".env"],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI",
+    "PLAYWRIGHT_TEST_BASE_URL",
+    "PLAYWRIGHT_HEADLESS"
+  ],
+  "pipeline": {
+    "clean": {
+      "dependsOn": ["^clean"]
+    },
+    "build": {
+      "dependsOn": ["clean", "^build", "prisma:generate"],
+      "outputs": ["dist/**", ".next/**"]
+    },
+    "test": {
+      "outputs": []
+    },
+    "metro": {
+      "outputs": []
+    },
+    "test:ci": {
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "dependsOn": ["^prisma:generate"],
+      "cache": false
+    },
+    "start": {
+      "dependsOn": ["^build"]
+    },
+    "prisma:generate": {
+      "cache": false
+    },
+    "prisma:push": {
+      "cache": false
+    }
+  }
+}
